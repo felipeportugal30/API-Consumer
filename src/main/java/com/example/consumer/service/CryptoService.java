@@ -1,11 +1,12 @@
 package com.example.consumer.service;
 
 import com.example.consumer.dto.CryptoDataDto;
+import com.example.consumer.exception.ResourceNotFoundException;
+import com.example.consumer.mapper.CryptoMapper;
 import com.example.consumer.model.Crypto;
 import com.example.consumer.repository.CryptoRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,47 +16,20 @@ import java.util.List;
 @Service
 public class CryptoService {
 
-    @Autowired
-    private CryptoRepository cryptoRepository;
+    private final CryptoRepository cryptoRepository;
+    private final ConsumerService consumerService;
 
-    @Autowired
-    private ConsumerService consumerService;
+    public CryptoService(CryptoRepository cryptoRepository, ConsumerService consumerService){
+        this.cryptoRepository = cryptoRepository;
+        this.consumerService = consumerService;
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(CryptoService.class);
 
     public void fetchAndSaveCryptoData() {
         String json = consumerService.getCryptoCoins();
-        List<CryptoDataDto> dtos = cleanCryptoData(json);
+        List<CryptoDataDto> dtos = CryptoMapper.fromJson(json);
         saveCrypto(dtos);
-    }
-
-    public List<CryptoDataDto> cleanCryptoData(String jsonResponse) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<CryptoDataDto> cryptoDataDtoList = new ArrayList<>();
-
-        try {
-            JsonNode rootNode = objectMapper.readTree(jsonResponse);
-            JsonNode dataNode = rootNode.get("data");
-
-            if (dataNode != null && dataNode.isArray()) {
-                for (JsonNode coinNode : dataNode) {
-                    JsonNode quoteNode = coinNode.get("quote").get("USD"); // Acessa o valor em USD
-
-                    CryptoDataDto cryptoData = new CryptoDataDto();
-                    cryptoData.setId(coinNode.get("id").asLong());
-                    cryptoData.setName(coinNode.get("name").asText());
-                    cryptoData.setSymbol(coinNode.get("symbol").asText());
-                    cryptoData.setPrice(quoteNode.get("price").asDouble());
-                    cryptoData.setMarketCap(quoteNode.get("market_cap").asDouble());
-                    cryptoData.setPercentChange24h(quoteNode.get("percent_change_24h").asDouble());
-
-                    cryptoDataDtoList.add(cryptoData);
-                }
-            }
-
-            return cryptoDataDtoList;
-        } catch (Exception e) {
-            System.out.println("error:" + e.getMessage());
-        }
-        return cryptoDataDtoList;
     }
 
     public void saveCrypto(List<CryptoDataDto> listCryptoDataDto) {
@@ -78,15 +52,20 @@ public class CryptoService {
     }
 
     public Crypto findById (Long id) {
-        return cryptoRepository.findById(id).orElseThrow(() -> new RuntimeException("Crypto with ID " + id + " doesn't exist"));
+        return cryptoRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Crypto with ID " + id + " doesn't exist"));
+    }
+
+    public Crypto findByName (String name) {
+
+        try{
+            return cryptoRepository.findByName(name);
+        } catch (RuntimeException e) {
+            throw new ResourceNotFoundException("Crypto with name " + name + " doesn't exist");
+        }
+
     }
 
     public List<Crypto> findAll () {
         return cryptoRepository.findAll();
-    }
-
-    //this method probably won't be used
-    public void deleteById (Long id) {
-        cryptoRepository.deleteById(id);
     }
 }

@@ -1,9 +1,18 @@
 package com.example.consumer.model;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
+@ToString
+@EqualsAndHashCode
 @Entity
 @Table(name = "cryptos")
 public class Crypto {
@@ -19,72 +28,16 @@ public class Crypto {
     private String symbol;
 
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
 
     @Column(nullable = false, name = "market_cap")
-    private Double marketCap;
+    private BigDecimal marketCap;
 
     @Column(nullable = false, name = "percent_change_24h")
-    private Double percentChange24h;
+    private BigDecimal percentChange24h;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Double getMarketCap() {
-        return marketCap;
-    }
-
-    public void setMarketCap(Double marketCap) {
-        this.marketCap = marketCap;
-    }
-
-    public Double getPercentChange24h() {
-        return percentChange24h;
-    }
-
-    public void setPercentChange24h(Double percentChange24h) {
-        this.percentChange24h = percentChange24h;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
 
 }

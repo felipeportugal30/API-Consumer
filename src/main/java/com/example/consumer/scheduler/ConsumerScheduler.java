@@ -1,25 +1,26 @@
 package com.example.consumer.scheduler;
 
-import com.example.consumer.service.ConsumerService;
 import com.example.consumer.service.CryptoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ConsumerScheduler {
 
-    private final ConsumerService consumerService;
     private final CryptoService cryptoService;
 
-    public ConsumerScheduler(ConsumerService consumerService, CryptoService cryptoService) {
-        this.consumerService = consumerService;
+    public ConsumerScheduler(CryptoService cryptoService) {
         this.cryptoService = cryptoService;
     }
 
-    @Scheduled(fixedRate = 300000)
+    private static final Logger logger = LoggerFactory.getLogger(ConsumerScheduler.class);
+
+    @Scheduled(fixedRateString = "${scheduler.crypto.fixedRate}")
     public void fetchConsumerDataPeriodically() {
         try {
-            System.out.println(">> [SCHEDULER] Calling getCryptoCoins");
+            logger.info("[SCHEDULER] Calling Coin Market Cap API");
             cryptoService.fetchAndSaveCryptoData();
         } catch (Exception e) {
             System.err.println("Error at consume the api: " + e.getMessage());
